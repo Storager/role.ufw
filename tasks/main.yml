@@ -7,38 +7,13 @@
     state:  disabled
     policy: deny
 
-- name: Add ssh rule
+- name: Add rules
   ufw:
     rule: allow
-    port: 22
-    proto: tcp
+    port: "{{item.num}}"
+    proto: "{{item.proto}}"
+  with_items: "{{ufw_ports}}"
 
-- name: Add 1194 rule
-  ufw:
-    rule: allow
-    port: 1194
-    proto: udp
-- name: set UFW default forward policy to ACCEPT
-  lineinfile:
-    dest: /etc/default/ufw
-    line: DEFAULT_FORWARD_POLICY="ACCEPT"
-    regexp: "^DEFAULT_FORWARD_POLICY\\="
-#  notify: reload ufw
-- name: inject some lines in before.rules
-  blockinfile:
-    dest: /etc/ufw/before.rules
-    insertbefore: "^# Don't delete these "
-    content: |
-      # START OPENVPN RULE
-      # NAT table rules
-      *nat
-      :POSTROUTING ACCEPT [0:0]
-      # Allow traffic from OpenVPN client to eth0
-      -A POSTROUTING -s 10.8.0.0/8 -o eth0 -j MASQUERADE
-      COMMIT
-      # END OPENVPN RULES
-  tags:
-   - rules
 - name: Enable UFW
   ufw:
     state:  enabled
